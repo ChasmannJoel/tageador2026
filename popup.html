@@ -1,0 +1,52 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <title>Clientify Auto Opener</title>
+    <style>
+      body {
+        font-family: Arial, sans-serif;
+        width: 300px;
+        padding: 15px;
+        margin: 0;
+      }
+      h3 {
+        margin: 0 0 15px 0;
+        text-align: center;
+        color: #1f2937;
+      }
+      button {
+        width: 100%;
+        padding: 10px;
+        margin-bottom: 8px;
+        border: none;
+        border-radius: 5px;
+        cursor: pointer;
+        font-weight: bold;
+        font-size: 13px;
+        color: white;
+        margin-bottom: 8px;
+        transition: background 0.2s;
+      }
+      button:hover {
+        opacity: 0.9;
+      }
+      #observarChatsBtn { background: #7c3aed; }
+      #verDatosBtn { background: #2563eb; }
+      #detenerChatsBtn { background: #ef4444; }
+      #mensajesInfo {
+        margin-top: 10px;
+        font-size: 11px;
+        color: #6b7280;
+      }
+    </style>
+  </head>
+  <body>
+    <h3>Clientify Auto Opener</h3>
+  <button id="observarChatsBtn">Iniciar Observación</button>
+  <button id="verDatosBtn">Ver Datos</button>
+  <button id="detenerChatsBtn">Detener</button>
+     <div id="mensajesInfo" style="white-space: pre-wrap; font-size: 12px; margin-top: 10px;"></div>
+  </body>
+  <script src="popup.js"></script>
+</html>

@@ -1,0 +1,22 @@
+{
+  "paneles": [
+    {"id": 10, "nombre": "Goatgaming2"},
+    {"id": 12, "nombre": "ThiagoP2"},
+    {"id": 1, "nombre": "Oporto"},
+    {"id": 18, "nombre": "PruebaPY"},
+    {"id": 22, "nombre": "Prueba2"},
+    {"id": 23, "nombre": "TestRespond"},
+    {"id": 24, "nombre": "Manga"},
+    {"id": 26, "nombre": "Scalo"},
+    {"id": 27, "nombre": "Pruebagg"},
+    {"id": 5, "nombre": "Treboldorado2"},
+    {"id": 20, "nombre": "Cocan"},
+    {"id": 16, "nombre": "Scaloneta"},
+    {"id": 32, "nombre": "Opulix"},
+    {"id": 19, "nombre": "Denver"},
+    {"id": 33, "nombre": "Godzilla"},
+    {"id": 34, "nombre": "Nova"},
+    {"id": 35, "nombre": "Martina"},
+    {"id": 36, "nombre": "Florida"}
+  ]
+}

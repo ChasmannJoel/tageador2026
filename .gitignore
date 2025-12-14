@@ -1,0 +1,20 @@
+# Editor directories and files
+.vscode/
+.idea/
+*.sublime-*
+
+# OS Files
+.DS_Store
+Thumbs.db
+
+# Backup files
+*_old.js
+*_backup.js
+*.bak
+
+# Logs
+*.log
+
+# Chrome Extension packaging
+*.pem
+*.crx

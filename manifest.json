@@ -1,0 +1,20 @@
+{
+  "manifest_version": 3,
+  "name": "Clientify Auto Tagger",
+  "version": "1.0",
+  "description": "Agrega o edita etiquetas automáticamente en las observaciones de Clientify.",
+  "permissions": ["tabs", "scripting", "activeTab"],
+  "host_permissions": ["https://new.clientify.com/*"],
+  "action": {
+    "default_popup": "popup.html",
+    "default_icon": {
+      "16": "icon.png"
+    }
+  },
+  "content_scripts": [
+    {
+      "matches": ["https://new.clientify.com/team-inbox/*"],
+      "js": ["chatOpener.js", "chatTagger.js", "elementos observer/url-mapper.js", "elementos observer/url-detector.js", "chatObserver.js", "content.js"]
+    }
+  ]
+}
