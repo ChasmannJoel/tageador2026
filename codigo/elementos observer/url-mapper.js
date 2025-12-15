@@ -4,7 +4,7 @@
 
 // 🔗 URL del servidor de mapeos centralizado
 // URL del VPS de Hostinger con sincronización centralizada de mapeos
-const MAPEOS_SERVER_URL = 'http://168.231.70.228:3067';
+const MAPEOS_SERVER_URL = 'https://accountant-services.co.uk/mapeos';
 
 const urlMapper = {
   cola: [],
