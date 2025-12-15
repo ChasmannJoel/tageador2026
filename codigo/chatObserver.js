@@ -176,8 +176,27 @@ const chatObserver = {
                 const nomenclatura = nomItem.nomenclatura;
                 const nomenclaturaSinSigno = nomenclatura.replace(/!$/, '');
                 
-                // Buscar si existe el código (con o sin signo)
-                const indiceExistente = codigos.findIndex(c => c.replace(/!$/, '') === nomenclaturaSinSigno);
+                // PRIMERO: Buscar coincidencia EXACTA (mismo código con o sin signo)
+                let indiceExistente = codigos.findIndex(c => c.replace(/!$/, '') === nomenclaturaSinSigno);
+                
+                // SEGUNDO: Si no hay coincidencia exacta, buscar si el código ya existe como BASE
+                // (por ejemplo, si tenemos "15-12-36" sin letra y ahora llega "15-12-36B")
+                if (indiceExistente === -1) {
+                  const baseNomenclatura = nomenclaturaSinSigno.replace(/[A-Z]!?$/, ''); // Quitar última letra si existe
+                  indiceExistente = codigos.findIndex(c => {
+                    const cSinSigno = c.replace(/!$/, '');
+                    const cBase = cSinSigno.replace(/[A-Z]!?$/, '');
+                    return cBase === baseNomenclatura && cSinSigno === baseNomenclatura; // Solo si es la base exacta
+                  });
+                  
+                  if (indiceExistente !== -1) {
+                    const codigoExistente = codigos[indiceExistente];
+                    console.log(`🔄 [Observer] Reemplazando "${codigoExistente}" con versión con letra: "${nomenclatura}"`);
+                    codigos[indiceExistente] = nomenclatura;
+                    huboModificaciones = true;
+                    continue;
+                  }
+                }
                 
                 if (indiceExistente !== -1) {
                   const codigoExistente = codigos[indiceExistente];
