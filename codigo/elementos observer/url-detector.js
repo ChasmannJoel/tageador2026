@@ -90,24 +90,45 @@ const urlDetector = {
     console.log(`🔍 Buscando panel "${nombreNormalizado}"...`);
     const panelesAPI = await this.cargarPanelesDesdeAPI();
     
-    // 2. Buscar en los paneles de la API (PRIMERO)
+    // 2. PRIMERO: Buscar coincidencia EXACTA en la API
     for (const panel of panelesAPI) {
       for (const nombre of panel.nombres) {
-        if (nombreNormalizado.toLowerCase().includes(nombre.toLowerCase()) ||
-            nombre.toLowerCase().includes(nombreNormalizado.toLowerCase())) {
-          console.log(`✅ Panel encontrado en API: ${nombre} (ID: ${panel.id})`);
+        if (nombreNormalizado.toLowerCase() === nombre.toLowerCase()) {
+          console.log(`✅ Panel encontrado (EXACTO) en API: ${nombre} (ID: ${panel.id})`);
           return { id: panel.id, nombre: nombre };
         }
       }
     }
     
-    // 3. Si no está en API, buscar en configuración local como FALLBACK
+    // 3. SEGUNDO: Buscar coincidencia PARCIAL en la API (solo si el buscado es más largo)
+    for (const panel of panelesAPI) {
+      for (const nombre of panel.nombres) {
+        // Solo coincidir si el nombre buscado CONTIENE el nombre del panel
+        // (no al revés) para evitar "Escaloneta" → "Scalo"
+        if (nombreNormalizado.toLowerCase().includes(nombre.toLowerCase()) && 
+            nombre.toLowerCase().length >= 4) { // Mínimo 4 caracteres para evitar falsos positivos
+          console.log(`✅ Panel encontrado (PARCIAL) en API: ${nombre} (ID: ${panel.id})`);
+          return { id: panel.id, nombre: nombre };
+        }
+      }
+    }
+    
+    // 4. FALLBACK: Si no está en API, buscar en configuración local
     console.log(`⚠️ Panel no encontrado en API, buscando en configuración local...`);
     for (const panel of PANELES_CONFIG) {
       for (const nombre of panel.nombres) {
-        if (nombreNormalizado.toLowerCase().includes(nombre.toLowerCase()) ||
-            nombre.toLowerCase().includes(nombreNormalizado.toLowerCase())) {
-          console.log(`✅ Panel encontrado localmente: ${nombre} (ID: ${panel.id})`);
+        if (nombreNormalizado.toLowerCase() === nombre.toLowerCase()) {
+          console.log(`✅ Panel encontrado localmente (EXACTO): ${nombre} (ID: ${panel.id})`);
+          return { id: panel.id, nombre: nombre };
+        }
+      }
+    }
+    
+    for (const panel of PANELES_CONFIG) {
+      for (const nombre of panel.nombres) {
+        if (nombreNormalizado.toLowerCase().includes(nombre.toLowerCase()) && 
+            nombre.toLowerCase().length >= 4) {
+          console.log(`✅ Panel encontrado localmente (PARCIAL): ${nombre} (ID: ${panel.id})`);
           return { id: panel.id, nombre: nombre };
         }
       }
