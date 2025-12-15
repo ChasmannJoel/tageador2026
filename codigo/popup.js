@@ -71,13 +71,21 @@ function updateButtonStates(running) {
 
 // Click en Iniciar
 document.getElementById("observarChatsBtn").addEventListener("click", async () => {
-  const [tab] = await chrome.tabs.query({ active: true, currentWindow: true });
+  // Buscar TODAS las pestañas de Clientify abiertas
+  const tabs = await chrome.tabs.query({ url: "https://new.clientify.com/team-inbox/*" });
+  
+  if (tabs.length === 0) {
+    addLog('❌ No hay pestañas de Clientify abiertas', 'error');
+    return;
+  }
+  
+  // Enviar a TODAS las pestañas de Clientify
+  tabs.forEach(tab => {
+    chrome.tabs.sendMessage(tab.id, { action: "observarChats" }).catch(() => {});
+  });
   
   updateButtonStates(true);
-  addLog('🟢 Observador iniciado', 'success');
-  
-  // Enviar al content script
-  chrome.tabs.sendMessage(tab.id, { action: "observarChats" });
+  addLog(`🟢 Observador iniciado en ${tabs.length} pestaña(s)`, 'success');
 });
 
 // Click en Detener

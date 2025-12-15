@@ -1,55 +1,66 @@
 // Service Worker - Intermediario de mensajes
-// Guarda el tabId activo y retransmite mensajes incluso cuando el popup está cerrado
+// Soporta múltiples tabs activos simultáneamente
 
-let activeTabId = null;
+let activeTabIds = new Set(); // Set de tabs activos
 let isRunning = false;
 
 // Escuchar mensajes desde popup y content script
 chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
-  // Si viene del popup (action = iniciar/detener)
+  const tabId = sender.tab?.id;
+  
+  // Si viene del content script iniciando observer
   if (message.action === "observarChats") {
-    console.log("[Background] Observador iniciado, guardando tabId:", sender.tab?.id);
-    activeTabId = sender.tab?.id;
+    console.log("[Background] Observer iniciado en tabId:", tabId);
+    activeTabIds.add(tabId);
     isRunning = true;
-    chrome.storage.local.set({ activeTabId, isRunning });
+    saveState();
   } 
   
+  // Si viene del popup - detener TODOS los observers activos
   if (message.action === "detenerChats") {
-    console.log("[Background] Detener enviado a tabId:", activeTabId);
-    isRunning = false;
-    chrome.storage.local.set({ isRunning });
+    console.log("[Background] Detener enviado a todos los tabs:", Array.from(activeTabIds));
     
-    // Retransmitir el mensaje al content script activo
-    if (activeTabId) {
-      chrome.tabs.sendMessage(activeTabId, { action: "detenerChats" }).catch(() => {
-        // Si el tab no existe, limpiar
-        activeTabId = null;
-        chrome.storage.local.set({ activeTabId: null });
+    // Enviar a todos los tabs activos
+    activeTabIds.forEach(id => {
+      chrome.tabs.sendMessage(id, { action: "detenerChats" }).catch(() => {
+        activeTabIds.delete(id);
       });
-    }
+    });
+    
+    isRunning = false;
+    saveState();
   }
   
   // Si viene del content script, retransmitir al popup si está abierto
   if (message.action === "popupEvent") {
-    chrome.runtime.sendMessage(message).catch(() => {
-      // El popup está cerrado, ignorar
-    });
+    chrome.runtime.sendMessage(message).catch(() => {});
   }
 });
 
 // Limpiar si el tab se cierra
 chrome.tabs.onRemoved.addListener((tabId) => {
-  if (tabId === activeTabId) {
+  if (activeTabIds.has(tabId)) {
     console.log("[Background] Tab cerrado:", tabId);
-    activeTabId = null;
-    isRunning = false;
-    chrome.storage.local.set({ activeTabId: null, isRunning: false });
+    activeTabIds.delete(tabId);
+    
+    if (activeTabIds.size === 0) {
+      isRunning = false;
+    }
+    saveState();
   }
 });
 
+// Guardar estado
+function saveState() {
+  chrome.storage.local.set({ 
+    activeTabIds: Array.from(activeTabIds),
+    isRunning 
+  });
+}
+
 // Cargar estado al iniciar
-chrome.storage.local.get(['activeTabId', 'isRunning'], (result) => {
-  activeTabId = result.activeTabId || null;
+chrome.storage.local.get(['activeTabIds', 'isRunning'], (result) => {
+  activeTabIds = new Set(result.activeTabIds || []);
   isRunning = result.isRunning || false;
-  console.log("[Background] Estado cargado:", { activeTabId, isRunning });
+  console.log("[Background] Estado cargado:", { activeTabIds: Array.from(activeTabIds), isRunning });
 });
