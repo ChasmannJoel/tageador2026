@@ -2,11 +2,18 @@
 // URL MAPPER - Gestión de mapeo URL → Letra de campaña
 // ============================================
 
+// 🔗 URL del servidor de mapeos centralizado
+// Reemplaza con tu URL de Hostinger: http://tu-dominio.com:3067 o http://IP:3067
+const MAPEOS_SERVER_URL = 'http://148.230.72.182:3067';
+
 const urlMapper = {
   cola: [],
   procesando: false,
   modalAbierto: false,
   intervaloSonido: null, // Para controlar la repetición del sonido
+  cacheMapeos: {}, // Cache local de mapeos
+  ultimaConsultaAPI: 0, // Timestamp de la última consulta
+  CACHE_DURATION: 5 * 60 * 1000, // 5 minutos de cache
   
   /**
    * Obtiene la letra de campaña para una URL
@@ -735,16 +742,24 @@ const urlMapper = {
   },
   
   /**
-   * Guarda el mapeo URL → Letra
+   * Guarda el mapeo URL → Letra en el servidor y en localStorage
    * @param {string} url - URL
    * @param {string} letra - Letra de campaña
+   * @param {string} panel - Panel asociado (opcional)
    */
-  guardarMapeo(url, letra) {
+  guardarMapeo(url, letra, panel = 'Sin panel') {
     try {
+      // 1. Guardar en localStorage como respaldo
       const mapping = this.getMapping();
       mapping[url] = letra;
-      
       localStorage.setItem('clientify_url_campana_mapping', JSON.stringify(mapping));
+      
+      // 2. Actualizar cache local
+      this.cacheMapeos[url] = letra;
+      
+      // 3. Enviar al servidor de forma ASÍNCRONA (no bloquea)
+      this.sincronizarAlServidor(url, letra, panel);
+      
       console.log(`✅ Mapeado: ${url} → ${letra}`);
     } catch (error) {
       console.error('❌ Error al guardar mapeo:', error);
@@ -752,16 +767,145 @@ const urlMapper = {
   },
   
   /**
-   * Obtiene el mapeo completo desde localStorage
+   * Sincroniza un mapeo con el servidor remoto (asíncrono, no bloquea)
+   * @param {string} url - URL
+   * @param {string} letra - Letra de campaña
+   * @param {string} panel - Panel asociado
+   */
+  async sincronizarAlServidor(url, letra, panel = 'Sin panel') {
+    try {
+      console.log(`🔄 Enviando mapeo al servidor: ${url} → ${letra}`);
+      
+      const response = await fetch(`${MAPEOS_SERVER_URL}/mapeos`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'X-Machine-ID': this.getMachineId()
+        },
+        body: JSON.stringify({
+          url: url,
+          letra: letra.toUpperCase(),
+          panel: panel
+        })
+      });
+      
+      if (response.ok) {
+        const data = await response.json();
+        console.log(`✅ Mapeo sincronizado con servidor: ${data.mensaje}`);
+      } else {
+        console.warn(`⚠️ Error en servidor: ${response.status}`);
+      }
+    } catch (error) {
+      console.error(`⚠️ No se pudo sincronizar con el servidor (seguirá usando cache local):`, error);
+      // El sistema continúa funcionando con cache local aunque falle el servidor
+    }
+  },
+  
+  /**
+   * Obtiene un ID único de la máquina para identificar quién sincroniza
+   * @returns {string} ID único de la máquina
+   */
+  getMachineId() {
+    let machineId = localStorage.getItem('machine_id');
+    
+    if (!machineId) {
+      // Generar un ID único basado en fecha, hora y random
+      machineId = `MACHINE-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
+      localStorage.setItem('machine_id', machineId);
+      console.log(`🤖 ID de máquina generado: ${machineId}`);
+    }
+    
+    return machineId;
+  },
+  
+  /**
+   * Obtiene el mapeo completo desde el servidor remoto con cache local
    * @returns {Object} Mapeo URL → Letra
    */
   getMapping() {
     try {
+      const ahora = Date.now();
+      
+      // Si el cache es reciente (menos de 5 minutos), usarlo
+      if (Object.keys(this.cacheMapeos).length > 0 && 
+          (ahora - this.ultimaConsultaAPI) < this.CACHE_DURATION) {
+        console.log('📦 Usando cache local de mapeos');
+        return this.cacheMapeos;
+      }
+      
+      // Intentar obtener del servidor (asíncrono en background)
+      this.actualizarCacheDesdeServidor();
+      
+      // Retornar cache actual (fallback a localStorage si no hay cache)
+      if (Object.keys(this.cacheMapeos).length > 0) {
+        return this.cacheMapeos;
+      }
+      
+      // Fallback final: localStorage
       const mappingStr = localStorage.getItem('clientify_url_campana_mapping');
-      return mappingStr ? JSON.parse(mappingStr) : {};
-    } catch (error) {
-      console.error('❌ Error al leer mapeo:', error);
+      if (mappingStr) {
+        this.cacheMapeos = JSON.parse(mappingStr);
+        return this.cacheMapeos;
+      }
+      
       return {};
+    } catch (error) {
+      console.error('❌ Error al obtener mapeo:', error);
+      
+      // Fallback a localStorage
+      try {
+        const mappingStr = localStorage.getItem('clientify_url_campana_mapping');
+        return mappingStr ? JSON.parse(mappingStr) : {};
+      } catch {
+        return {};
+      }
+    }
+  },
+  
+  /**
+   * Actualiza el cache de mapeos desde el servidor remoto (asíncrono)
+   */
+  async actualizarCacheDesdeServidor() {
+    try {
+      const response = await fetch(`${MAPEOS_SERVER_URL}/mapeos`, {
+        headers: {
+          'X-Machine-ID': this.getMachineId()
+        }
+      });
+      
+      if (response.ok) {
+        const data = await response.json();
+        
+        if (data.ok && data.mapeos) {
+          // Actualizar cache
+          this.cacheMapeos = {};
+          Object.entries(data.mapeos).forEach(([url, info]) => {
+            this.cacheMapeos[url] = info.letra || info;
+          });
+          
+          this.ultimaConsultaAPI = Date.now();
+          
+          console.log(`✅ Cache de mapeos actualizado (${Object.keys(this.cacheMapeos).length} URLs)`);
+          
+          // Guardar en localStorage como respaldo
+          localStorage.setItem('clientify_url_campana_mapping', JSON.stringify(this.cacheMapeos));
+        }
+      } else {
+        console.warn(`⚠️ Error al consultar servidor: ${response.status}`);
+      }
+    } catch (error) {
+      console.warn(`⚠️ No se puede conectar al servidor de mapeos:`, error);
+      console.log('📱 Usando cache local y localStorage');
+      
+      // Cargar desde localStorage como fallback
+      try {
+        const mappingStr = localStorage.getItem('clientify_url_campana_mapping');
+        if (mappingStr) {
+          this.cacheMapeos = JSON.parse(mappingStr);
+        }
+      } catch (e) {
+        console.error('Error al cargar fallback de localStorage:', e);
+      }
     }
   },
   
