@@ -59,9 +59,6 @@ const chatObserver = {
             const nomenclaturas = urlInfo.nomenclaturas || [{ nomenclatura: urlInfo.nomenclatura }];
             const urlFinal = urlInfo.url && urlInfo.url !== 'Sin URL' ? urlInfo.url : 'Sin URL';
             
-            // Guardar en localStorage (primera nomenclatura)
-            self.saveToLocalStorage(nomenclaturas[0].nomenclatura, urlFinal, urlInfo.panelOriginal);
-            
             const nomenclaturasStr = nomenclaturas.map(n => n.nomenclatura).join(', ');
             console.log(`📋 [Observer] Nomenclaturas generadas: ${nomenclaturasStr}`);
             
@@ -232,118 +229,6 @@ const chatObserver = {
     }
   },
   
-  /**
-   * Función auxiliar para tagear en Observaciones (legacy - mantener por compatibilidad)
-   * @param {string} nomenclatura - Código a tagear
-   * @param {number} chatIndex - Índice del chat actual
-   * @param {Function} onComplete - Callback para ejecutar después de tagear
-   */
-  tagearEnObservaciones(nomenclatura, chatIndex, onComplete) {
-    const self = this;
-    const chatWindow = document.querySelector('.mui-npbckn');
-    
-    const obsP = chatWindow && Array.from(chatWindow.querySelectorAll('p')).find(
-      p => /Observaci[oó]n(es)?/i.test(p.textContent)
-    );
-    
-    if (obsP) {
-      // Simular hover para mostrar el botón de edición
-      const mouseOverEvent = new MouseEvent('mouseover', { bubbles: true });
-      obsP.dispatchEvent(mouseOverEvent);
-      
-      setTimeout(() => {
-        const editBtn = obsP.querySelector('button.btn-edit');
-        if (editBtn) {
-          editBtn.click();
-          
-          // Intentar encontrar el textarea con reintentos
-          let intentos = 0;
-          const maxIntentos = 8;
-          
-          function buscarTextareaYTaggear() {
-            const textarea = document.querySelector('textarea.mui-16j0ffk');
-            if (textarea) {
-              const actual = textarea.value.trim();
-              const codigos = actual.split(',').map(c => c.trim()).filter(c => c.length > 0);
-              
-              // Normalizar nomenclatura (quitar signo para comparación)
-              const nomenclaturaSinSigno = nomenclatura.replace(/!$/, '');
-              const tieneSigno = nomenclatura.endsWith('!');
-              
-              // Buscar si existe el código (con o sin signo)
-              const codigoExistenteConSigno = codigos.find(c => c.replace(/!$/, '') === nomenclaturaSinSigno && c.endsWith('!'));
-              const codigoExistenteSinSigno = codigos.find(c => c.replace(/!$/, '') === nomenclaturaSinSigno && !c.endsWith('!'));
-              const codigoExistente = codigoExistenteConSigno || codigoExistenteSinSigno;
-              
-              if (codigoExistente) {
-                // Si existe el código exacto, no hacer nada
-                if (codigoExistente === nomenclatura) {
-                  console.log(`✅ [Observer] Chat ${chatIndex + 1} ya tiene "${nomenclatura}", saltando...`);
-                  const cancelBtn = document.querySelector('button[aria-label="Cancelar"]');
-                  if (cancelBtn) cancelBtn.click();
-                  setTimeout(onComplete, 2000);
-                  return;
-                }
-                
-                // Si existe pero con diferente signo, reemplazar
-                console.log(`🔄 [Observer] Reemplazando "${codigoExistente}" por "${nomenclatura}"`);
-                const codigosActualizados = codigos.map(c => 
-                  c.replace(/!$/, '') === nomenclaturaSinSigno ? nomenclatura : c
-                );
-                const nuevoValor = codigosActualizados.join(', ');
-                textarea.value = nuevoValor;
-                textarea.dispatchEvent(new Event('input', { bubbles: true }));
-                
-                setTimeout(() => {
-                  const saveBtn = document.querySelector('button[aria-label="Guardar"]');
-                  if (saveBtn) {
-                    saveBtn.click();
-                    console.log(`✅ [Observer] Chat ${chatIndex + 1} actualizado a "${nomenclatura}"`);
-                    setTimeout(onComplete, 3000);
-                  } else {
-                    console.warn('[Observer] No se encontró el botón Guardar');
-                    setTimeout(onComplete, 2000);
-                  }
-                }, 1000);
-              } else {
-                // No existe, agregar el nuevo código
-                const nuevoValor = actual ? actual + ', ' + nomenclatura : nomenclatura;
-                textarea.value = nuevoValor;
-                textarea.dispatchEvent(new Event('input', { bubbles: true }));
-                
-                setTimeout(() => {
-                  const saveBtn = document.querySelector('button[aria-label="Guardar"]');
-                  if (saveBtn) {
-                    saveBtn.click();
-                    console.log(`✅ [Observer] Chat ${chatIndex + 1} tageado con "${nomenclatura}"`);
-                    setTimeout(onComplete, 3000);
-                  } else {
-                    console.warn('[Observer] No se encontró el botón Guardar');
-                    setTimeout(onComplete, 2000);
-                  }
-                }, 1000);
-              }
-            } else if (intentos < maxIntentos) {
-              intentos++;
-              setTimeout(buscarTextareaYTaggear, 1000);
-            } else {
-              console.warn('[Observer] No se encontró el textarea tras varios intentos');
-              setTimeout(onComplete, 2000);
-            }
-          }
-          
-          setTimeout(buscarTextareaYTaggear, 4000);
-        } else {
-          console.warn('[Observer] No se encontró el botón de edición');
-          setTimeout(onComplete, 2000);
-        }
-      }, 600);
-    } else {
-      console.warn('[Observer] No se encontró el <p> Observaciones');
-      setTimeout(onComplete, 2000);
-    }
-  },
-  
   startObserveIteration() {
     console.log('🔍 Iniciando observación CONTINUA y TAGEO automático de chats de HOY...');
     console.log('♻️ El observer buscará y tageará nuevos chats cada 30 segundos automáticamente');
@@ -367,43 +252,6 @@ const chatObserver = {
     if (this.pausado && this.callbackReanudar) {
       this.callbackReanudar();
       this.callbackReanudar = null;
-    }
-  },
-  
-  /**
-   * Guarda los datos en localStorage agrupados por NOMENCLATURA
-   * También guarda la asociación nomenclatura → panel para usar al tagear
-   * @param {string} nomenclatura - Nomenclatura del mensaje (ej: "11-12-19A")
-   * @param {string} url - URL del mensaje
-   * @param {string} panelOriginal - Nombre original del panel
-   */
-  saveToLocalStorage(nomenclatura, url, panelOriginal) {
-    try {
-      // 1. Guardar datos de mensajes por nomenclatura
-      const dataStr = localStorage.getItem('clientify_chat_data');
-      const data = dataStr ? JSON.parse(dataStr) : {};
-      
-      if (!data[nomenclatura]) {
-        data[nomenclatura] = {};
-      }
-      
-      if (!data[nomenclatura][url]) {
-        data[nomenclatura][url] = 0;
-      }
-      data[nomenclatura][url]++;
-      
-      localStorage.setItem('clientify_chat_data', JSON.stringify(data));
-      
-      // 2. Guardar asociación nomenclatura → panel (para tagear después)
-      const mappingStr = localStorage.getItem('clientify_nomenclatura_panel_mapping');
-      const mapping = mappingStr ? JSON.parse(mappingStr) : {};
-      
-      if (!mapping[nomenclatura]) {
-        mapping[nomenclatura] = panelOriginal;
-        localStorage.setItem('clientify_nomenclatura_panel_mapping', JSON.stringify(mapping));
-      }
-    } catch (error) {
-      console.error('[Observer] ❌ Error al guardar en localStorage:', error);
     }
   }
 };
