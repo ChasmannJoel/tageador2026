@@ -5,6 +5,9 @@
   "description": "Observa y etiqueta chats automáticamente en Clientify con nomenclatura inteligente.",
   "permissions": ["tabs", "scripting", "activeTab", "storage"],
   "host_permissions": ["https://new.clientify.com/*"],
+  "background": {
+    "service_worker": "codigo/background.js"
+  },
   "action": {
     "default_popup": "codigo/popup.html",
     "default_icon": {

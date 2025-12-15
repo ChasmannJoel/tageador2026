@@ -13,6 +13,10 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
     chatOpener.stopChatIteration();
     chatTagger.stopTagIteration();
     chatObserver.stopObserveIteration();
+    // Limpiar estado de running en storage
+    chrome.storage.local.set({ 
+      popupState: { ...JSON.parse(localStorage.getItem('popupState') || '{}'), isRunning: false }
+    });
   }
   if (message.action === "tagearChatsV2") {
     console.log("▶️ [AutoTag] Iniciando tageo de chats V2...");

@@ -11,6 +11,7 @@ function loadStoredState() {
     if (result.popupState) {
       Object.assign(popupState, result.popupState);
       updateLogUI();
+      updateButtonStates(popupState.isRunning);
     }
   });
 }
@@ -75,17 +76,24 @@ document.getElementById("observarChatsBtn").addEventListener("click", async () =
   updateButtonStates(true);
   addLog('🟢 Observador iniciado', 'success');
   
+  // Enviar al content script
   chrome.tabs.sendMessage(tab.id, { action: "observarChats" });
 });
 
 // Click en Detener
 document.getElementById("detenerChatsBtn").addEventListener("click", async () => {
-  const [tab] = await chrome.tabs.query({ active: true, currentWindow: true });
+  // Enviar al background worker, que retransmitirá al content script activo
+  chrome.runtime.sendMessage({ action: "detenerChats" }).catch(() => {
+    // Fallback: intentar con el tab actual
+    chrome.tabs.query({ active: true, currentWindow: true }, (tabs) => {
+      if (tabs[0]) {
+        chrome.tabs.sendMessage(tabs[0].id, { action: "detenerChats" });
+      }
+    });
+  });
   
   updateButtonStates(false);
   addLog('⏹️ Observador detenido', 'warning');
-  
-  chrome.tabs.sendMessage(tab.id, { action: "detenerChats" });
 });
 
 // Click en Limpiar
