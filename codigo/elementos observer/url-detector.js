@@ -209,8 +209,8 @@ const urlDetector = {
       if (urlsUnicas.has(urlItem.url)) continue;
       urlsUnicas.set(urlItem.url, true);
       
-      // Obtener letra de campaña para esta URL
-      const letraCampana = urlMapper.getLetraCampana(urlItem.url, panel);
+      // Obtener letra de campaña para esta URL (ahora async)
+      const letraCampana = await urlMapper.getLetraCampana(urlItem.url, panel);
       
       // Si no tiene letra, esperar (pausar observer)
       if (!letraCampana) {

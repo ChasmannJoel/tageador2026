@@ -22,11 +22,17 @@ const urlMapper = {
    * @param {string} panel - Nombre del panel asociado (opcional)
    * @returns {string} Letra de campaña ('A', 'B', 'C', etc.) o null si está pendiente
    */
-  getLetraCampana(url, panel = null) {
+  async getLetraCampana(url, panel = null) {
+    // Intentar cargar mapeos del servidor si el cache está vacío
+    if (Object.keys(this.cacheMapeos).length === 0) {
+      await this.actualizarCacheDesdeServidor();
+    }
+    
     // Verificar si ya existe el mapeo
     const mapping = this.getMapping();
     
     if (mapping[url]) {
+      console.log(`✅ URL encontrada en mapeos: ${url} → Letra: ${mapping[url]}`);
       return mapping[url];
     }
     
