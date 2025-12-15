@@ -84,6 +84,9 @@ document.getElementById("observarChatsBtn").addEventListener("click", async () =
   addEvent('Iniciando observación de chats', 'info');
   
   chrome.tabs.sendMessage(tab.id, { action: "observarChats" });
+  
+  // Abrir monitor automáticamente
+  openMonitor();
 });
 
 document.getElementById("detenerChatsBtn").addEventListener("click", async () => {
@@ -94,6 +97,15 @@ document.getElementById("detenerChatsBtn").addEventListener("click", async () =>
   
   chrome.tabs.sendMessage(tab.id, { action: "detenerChats" });
 });
+
+// Abrir monitor en ventana separada
+function openMonitor() {
+  const monitorUrl = chrome.runtime.getURL('codigo/monitor.html');
+  window.open(monitorUrl, 'AutoTagMonitor', 'width=650,height=900,left=100,top=100');
+}
+
+// Botón para abrir monitor manualmente
+document.getElementById("abrirMonitorBtn")?.addEventListener("click", openMonitor);
 
 // Escuchar mensajes desde el content script
 chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
