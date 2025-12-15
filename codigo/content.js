@@ -22,14 +22,6 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
     console.log("▶️ [AutoTag] Iniciando observación de chats...");
     chatObserver.startObserveIteration();
   }
-  if (message.action === "verDatos") {
-    console.log("📊 [AutoTag] Abriendo panel lateral de datos...");
-    abrirPanelDatos();
-  }
-  if (message.action === "verCola") {
-    console.log("📋 [AutoTag] Mostrando estado de la cola...");
-    urlMapper.mostrarEstadoCola();
-  }
 });
 
 /**
