@@ -35,20 +35,16 @@ const urlMapper = {
    * @returns {string} Letra de campaña ('A', 'B', 'C', etc.) o null si está pendiente
    */
   async getLetraCampana(url, panel = null) {
-    // Intentar cargar mapeos del servidor si el cache está vacío
-    if (Object.keys(this.cacheMapeos).length === 0) {
-      await this.actualizarCacheDesdeServidor();
+    // Primero intentar consultar esa URL específica al servidor
+    // Esto incrementa el contador de usos automáticamente
+    const letraDelServidor = await this.consultarMapeoEspecifico(url);
+    
+    if (letraDelServidor) {
+      console.log(`✅ URL encontrada en servidor: ${url} → Letra: ${letraDelServidor}`);
+      return letraDelServidor;
     }
     
-    // Verificar si ya existe el mapeo
-    const mapping = this.getMapping();
-    
-    if (mapping[url]) {
-      console.log(`✅ URL encontrada en mapeos: ${url} → Letra: ${mapping[url]}`);
-      return mapping[url];
-    }
-    
-    // No existe, agregar a la cola si no está ya (ahora con panel)
+    // Si no existe en servidor, agregar a la cola para mapear
     if (!this.cola.some(item => item.url === url)) {
       this.cola.push({ url, panel });
       console.log(`📋 URL agregada a cola de mapeo: ${url} | Panel: ${panel || 'Sin panel'}`);
@@ -60,6 +56,48 @@ const urlMapper = {
     }
     
     return null; // Aún no tiene letra asignada
+  },
+  
+  /**
+   * Consulta una URL específica al servidor e incrementa contador de usos
+   * @param {string} url - URL a consultar
+   * @returns {string|null} Letra de campaña o null si no existe
+   */
+  async consultarMapeoEspecifico(url) {
+    try {
+      const response = await fetch(`${MAPEOS_SERVER_URL}/mapeos?url=${encodeURIComponent(url)}`, {
+        headers: {
+          'X-Machine-ID': this.getMachineId()
+        }
+      });
+      
+      if (response.ok) {
+        const data = await response.json();
+        
+        if (data.ok && data.mapeo) {
+          const letra = data.mapeo.letra || data.mapeo;
+          
+          // Actualizar cache local
+          this.cacheMapeos[url] = letra;
+          
+          console.log(`📥 Mapeo consultado (usos: ${data.mapeo.usos || 1}): ${url} → ${letra}`);
+          return letra;
+        }
+      }
+      
+      return null;
+    } catch (error) {
+      console.warn(`⚠️ Error consultando mapeo específico:`, error);
+      
+      // Si falla, intentar desde cache local
+      const mapping = this.getMapping();
+      if (mapping[url]) {
+        console.log(`📦 Usando cache local: ${url} → ${mapping[url]}`);
+        return mapping[url];
+      }
+      
+      return null;
+    }
   },
   
   /**
