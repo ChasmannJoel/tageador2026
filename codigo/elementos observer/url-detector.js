@@ -648,9 +648,16 @@ window.testDeteccionCarga = function() {
   console.log('🧪 INICIANDO TEST DE DETECCIÓN DE CARGA');
   console.log('═══════════════════════════════════════════════════════\n');
   
-  const fraseObjetivo = 'segui los pasos a continuacion para que tu acr3dit4ci0n se procese sin demoras';
-  console.log('📝 Frase que se busca (normalizada):');
-  console.log(`   "${fraseObjetivo}"\n`);
+  const frasesObjetivo = [
+    'segui los pasos a continuacion para que tu acr3dit4ci0n se procese sin demoras',
+    'segui los pasos a continuacion para que tu acr3ditacion se procese sin demoras',
+    'segui los pasos a continuacion para que tu acr3dit4cion se procese sin demoras'
+  ];
+  console.log('📝 Frases que se buscan (normalizadas):');
+  frasesObjetivo.forEach((frase, i) => {
+    console.log(`   [${i + 1}] "${frase}"`);
+  });
+  console.log();
   
   // 1. Verificar contenedor
   const messagesContainer = document.querySelector('.MuiBox-root.mui-ylizsf');
@@ -740,12 +747,21 @@ window.testDeteccionCarga = function() {
       console.log(`      Original: "${textoOriginal.substring(0, 100)}${textoOriginal.length > 100 ? '...' : ''}"`);
       console.log(`      Normalizado: "${textoNormalizado.substring(0, 100)}${textoNormalizado.length > 100 ? '...' : ''}"`);
       
-      if (textoNormalizado.includes(fraseObjetivo)) {
+      // Buscar cualquiera de las 3 frases
+      let fraseEncontrada = null;
+      for (let frase of frasesObjetivo) {
+        if (textoNormalizado.includes(frase)) {
+          fraseEncontrada = frase;
+          break;
+        }
+      }
+      
+      if (fraseEncontrada) {
         console.log(`\n   🎯🎯🎯 ¡ENCONTRADO! 🎯🎯🎯`);
         console.log(`   ✅ Este mensaje contiene la frase de carga`);
         encontrado = true;
       } else {
-        console.log(`      ❌ No contiene la frase buscada`);
+        console.log(`      ❌ No contiene ninguna variante buscada`);
       }
     });
   });
