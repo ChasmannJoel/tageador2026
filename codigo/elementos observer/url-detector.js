@@ -290,9 +290,12 @@ const urlDetector = {
       return false;
     }
     
-    // Frase que indica que el cliente cargó (normalizada)
-    const fraseObjetivo = 'segui los pasos a continuacion para que tu acr3dit4ci0n se procese sin demoras';
-    console.log(`🎯 [Carga] Buscando frase: "${fraseObjetivo}"`);
+    // Frases que indican que el cliente cargó (normalizada)
+    const frasesObjetivo = [
+      'segui los pasos a continuacion para que tu acr3dit4ci0n se procese sin demoras',
+      'segui los pasos a continuacion para que tu acr3ditacion se procese sin demoras'
+    ];
+    console.log(`🎯 [Carga] Buscando 2 variantes de frase de carga...`);
     
     // Obtener TODOS los mensajes
     const allMessages = messagesContainer.querySelectorAll('div[id^="message-"]');
@@ -325,7 +328,16 @@ const urlDetector = {
       
       console.log(`🔍 [Carga] Texto normalizado completo: ${textoNormalizado.substring(0, 100)}`);
       
-      if (textoNormalizado.includes(fraseObjetivo)) {
+      // Buscar cualquiera de las frases
+      let fraseEncontrada = null;
+      for (let frase of frasesObjetivo) {
+        if (textoNormalizado.includes(frase)) {
+          fraseEncontrada = frase;
+          break;
+        }
+      }
+      
+      if (fraseEncontrada) {
         console.log('✅ [URL Detector] Mensaje de CARGA detectado en texto completo');
         return true;
       }
