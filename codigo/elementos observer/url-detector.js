@@ -293,9 +293,10 @@ const urlDetector = {
     // Frases que indican que el cliente cargó (normalizada)
     const frasesObjetivo = [
       'segui los pasos a continuacion para que tu acr3dit4ci0n se procese sin demoras',
-      'segui los pasos a continuacion para que tu acr3ditacion se procese sin demoras'
+      'segui los pasos a continuacion para que tu acr3ditacion se procese sin demoras',
+      'segui los pasos a continuacion para que tu acr3dit4cion se procese sin demoras'
     ];
-    console.log(`🎯 [Carga] Buscando 2 variantes de frase de carga...`);
+    console.log(`🎯 [Carga] Buscando 3 variantes de frase de carga...`);
     
     // Obtener TODOS los mensajes
     const allMessages = messagesContainer.querySelectorAll('div[id^="message-"]');
