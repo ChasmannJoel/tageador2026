@@ -75,6 +75,11 @@
         background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%);
       }
 
+      #nomenclaturaBtn {
+        grid-column: 1 / -1;
+        background: linear-gradient(135deg, #8b5cf6 0%, #7c3aed 100%);
+      }
+
       .mapeos-section {
         display: none;
         padding: 12px;
@@ -248,24 +253,226 @@
       .log-container {
         display: none;
       }
+
+      /* ===== NOMENCLATURA SECTION ===== */
+      .nomenclatura-section {
+        display: none;
+        padding: 12px;
+        background: #0f172a;
+        border-radius: 6px;
+        border: 1px solid #334155;
+        flex-direction: column;
+        gap: 10px;
+        max-height: 500px;
+      }
+
+      .nomenclatura-section.visible {
+        display: flex;
+      }
+
+      .nomenclatura-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        border-bottom: 1px solid #334155;
+        padding-bottom: 8px;
+      }
+
+      .nomenclatura-header h3 {
+        color: #e2e8f0;
+        font-size: 12px;
+        margin: 0;
+      }
+
+      .nomenclatura-header button {
+        padding: 4px 8px;
+        font-size: 9px;
+        background: #334155;
+      }
+
+      .paneles-list {
+        display: flex;
+        flex-direction: column;
+        gap: 6px;
+        overflow-y: auto;
+        max-height: 200px;
+      }
+
+      .panel-item {
+        padding: 8px;
+        background: #1e293b;
+        border: 1px solid #334155;
+        border-radius: 4px;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        transition: all 0.2s;
+      }
+
+      .panel-item:hover {
+        background: #334155;
+        border-color: #8b5cf6;
+      }
+
+      .panel-info {
+        flex: 1;
+        display: flex;
+        flex-direction: column;
+        gap: 3px;
+      }
+
+      .panel-id {
+        font-size: 9px;
+        color: #94a3b8;
+        text-transform: uppercase;
+      }
+
+      .panel-nombre {
+        font-size: 11px;
+        color: #e2e8f0;
+        font-weight: bold;
+      }
+
+      .panel-actions {
+        display: flex;
+        gap: 4px;
+      }
+
+      .panel-actions button {
+        padding: 4px 8px;
+        font-size: 9px;
+        border-radius: 3px;
+        cursor: pointer;
+        transition: all 0.2s;
+      }
+
+      .edit-btn {
+        background: #3b82f6;
+      }
+
+      .edit-btn:hover {
+        background: #2563eb;
+      }
+
+      .delete-btn {
+        background: #ef4444;
+      }
+
+      .delete-btn:hover {
+        background: #dc2626;
+      }
+
+      .nomenclatura-form {
+        display: flex;
+        flex-direction: column;
+        gap: 8px;
+        padding: 10px;
+        background: #1e293b;
+        border: 1px solid #334155;
+        border-radius: 4px;
+      }
+
+      .form-field {
+        display: flex;
+        flex-direction: column;
+        gap: 4px;
+      }
+
+      .form-field label {
+        font-size: 10px;
+        color: #94a3b8;
+        text-transform: uppercase;
+        font-weight: bold;
+      }
+
+      .form-field input {
+        padding: 6px;
+        background: #0f172a;
+        color: #e2e8f0;
+        border: 1px solid #334155;
+        border-radius: 4px;
+        font-size: 10px;
+      }
+
+      .form-field input:focus {
+        outline: none;
+        border-color: #8b5cf6;
+        box-shadow: 0 0 0 2px rgba(139, 92, 246, 0.1);
+      }
+
+      .form-actions {
+        display: flex;
+        gap: 6px;
+        padding-top: 8px;
+      }
+
+      .form-actions button {
+        flex: 1;
+        padding: 8px;
+        font-size: 10px;
+        border-radius: 4px;
+        cursor: pointer;
+      }
+
+      #agregarPanelBtn {
+        background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+      }
+
+      #agregarPanelBtn:hover {
+        background: linear-gradient(135deg, #059669 0%, #047857 100%);
+      }
+
+      #cancelarFormBtn {
+        background: #334155;
+      }
+
+      #cancelarFormBtn:hover {
+        background: #475569;
+      }
+
+      .crear-panel-btn {
+        grid-column: 1 / -1;
+        background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+      }
+
+      .crear-panel-btn:hover {
+        background: linear-gradient(135deg, #059669 0%, #047857 100%);
+      }
+
+      .loading-spinner {
+        text-align: center;
+        color: #64748b;
+        font-size: 11px;
+        padding: 20px;
+      }
+
+      /* Botones en la nomenclatura */
+      #abrirFormPanelBtn {
+        width: 100%;
+        padding: 8px;
+        background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+      }
+
+      #abrirFormPanelBtn:hover {
+        background: linear-gradient(135deg, #059669 0%, #047857 100%);
+      }
     </style>
   </head>
   <body>
     <div class="container">
       <div class="header">
-        <h2>Ì¥ç Observador AutoTag</h2>
+        <h2>ÔøΩÔøΩÔøΩ Observador AutoTag</h2>
         <p>Control de mapeo y observador</p>
       </div>
       
       <div class="controls">
         <button id="observarChatsBtn">‚ñ∂Ô∏è Iniciar</button>
         <button id="detenerChatsBtn" disabled>‚èπÔ∏è Detener</button>
-        <button id="mapeoBtn">Ì∑∫Ô∏è Mapeos</button>
-      </div>
+        <button id="mapeoBtn">ÔøΩÔøΩÔøΩÔ∏è Mapeos</button>        <button id="nomenclaturaBtn">üìã Nomenclatura</button>      </div>
 
       <div class="mapeos-section" id="mapeosSection">
         <div class="mapeos-header">
-          <h3>Ì≥ù Editar Mapeos</h3>
+          <h3>ÔøΩÔøΩÔøΩ Editar Mapeos</h3>
           <button id="cerrarMapeoBtn">‚úï</button>
         </div>
 
@@ -286,9 +493,33 @@
 
           <div class="mapeos-actions">
             <button id="guardarMapeoBtn">‚úÖ Guardar</button>
-            <button id="eliminarMapeoBtn">Ì∑ëÔ∏è Eliminar</button>
+            <button id="eliminarMapeoBtn">ÔøΩÔøΩÔøΩÔ∏è Eliminar</button>
           </div>
         </div>
+      </div>
+
+      <div class="nomenclatura-section" id="nomenclaturaSection">
+        <div class="nomenclatura-header">
+          <h3>üìã Nomenclatura - Paneles</h3>
+          <button id="cerrarNomenclaturaBtn">‚úï</button>
+        </div>
+
+        <div class="paneles-list" id="panelesList">
+          <div class="loading-spinner">‚è≥ Cargando paneles...</div>
+        </div>
+
+        <div class="nomenclatura-form" id="nomenclaturaForm" style="display: none;">
+          <div class="form-field">
+            <label>Nombre del Panel:</label>
+            <input type="text" id="nombrePanel" placeholder="Ej: Lisboa, Goatgaming...">
+          </div>
+          <div class="form-actions">
+            <button id="agregarPanelBtn">‚úÖ Guardar</button>
+            <button id="cancelarFormBtn">‚ùå Cancelar</button>
+          </div>
+        </div>
+
+        <button class="crear-panel-btn" id="abrirFormPanelBtn">‚ûï Crear Panel</button>
       </div>
       
       <div class="log-container" id="logContainer"></div>

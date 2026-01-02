@@ -75,7 +75,7 @@ document.getElementById("observarChatsBtn").addEventListener("click", async () =
   });
   
   updateButtonStates(true);
-  addLog(`Ìø¢ Observador iniciado en ${tabs.length} pesta√±a(s)`, 'success');
+  addLog(`ÔøΩÔøΩÔøΩ Observador iniciado en ${tabs.length} pesta√±a(s)`, 'success');
 });
 
 document.getElementById("detenerChatsBtn").addEventListener("click", async () => {
@@ -121,7 +121,7 @@ const mapeoModal = {
     chrome.storage.local.get(['urlMappings'], (result) => {
       if (result.urlMappings) {
         this.mapeos = result.urlMappings;
-        addLog('Ì≥¶ Mapeos cargados desde cach√© local', 'info');
+        addLog('ÔøΩÔøΩÔøΩ Mapeos cargados desde cach√© local', 'info');
       } else {
         this.mapeos = {};
       }
@@ -133,7 +133,7 @@ const mapeoModal = {
     const mapeos = this.mapeos;
 
     if (Object.keys(mapeos).length === 0) {
-      listContainer.innerHTML = '<div style="color: #64748b; text-align: center; padding: 30px 20px; font-size: 11px;">Ì≥≠ No hay mapeos</div>';
+      listContainer.innerHTML = '<div style="color: #64748b; text-align: center; padding: 30px 20px; font-size: 11px;">ÔøΩÔøΩÔøΩ No hay mapeos</div>';
       return;
     }
 
@@ -251,7 +251,7 @@ const mapeoModal = {
       .then(data => {
         if (data.ok) {
           chrome.storage.local.set({ urlMappings: this.mapeos }, () => {
-            addLog(`Ì∑ëÔ∏è Mapeo eliminado: ${urlOriginal}`, 'warning');
+            addLog(`ÔøΩÔøΩÔøΩÔ∏è Mapeo eliminado: ${urlOriginal}`, 'warning');
             this.actualizarListaMapeos();
             document.getElementById('urlOriginal').value = '';
             document.getElementById('letraMapeo').value = '';
@@ -295,6 +295,215 @@ document.getElementById("eliminarMapeoBtn").addEventListener("click", () => {
   mapeoModal.eliminar();
 });
 
+// Sistema de Nomenclatura (Paneles)
+const nomenclaturaManager = {
+  paneles: [],
+  panelesActual: null,
+  SERVIDOR_URL: 'https://accountant-services.co.uk',
+  SECRET: '?secret=tu_clave_super_secreta',
+
+  inicializar() {
+    this.agregarEventListeners();
+  },
+
+  agregarEventListeners() {
+    document.getElementById('nomenclaturaBtn').addEventListener('click', () => {
+      this.abrirPanel();
+    });
+
+    document.getElementById('cerrarNomenclaturaBtn').addEventListener('click', () => {
+      this.cerrarPanel();
+    });
+
+    document.getElementById('abrirFormPanelBtn').addEventListener('click', () => {
+      this.mostrarFormulario();
+    });
+
+    document.getElementById('agregarPanelBtn').addEventListener('click', () => {
+      this.guardarPanel();
+    });
+
+    document.getElementById('cancelarFormBtn').addEventListener('click', () => {
+      this.cancelarFormulario();
+    });
+  },
+
+  abrirPanel() {
+    const section = document.getElementById('nomenclaturaSection');
+    section.classList.add('visible');
+    this.cargarPaneles();
+  },
+
+  cerrarPanel() {
+    const section = document.getElementById('nomenclaturaSection');
+    section.classList.remove('visible');
+    this.cancelarFormulario();
+  },
+
+  async cargarPaneles() {
+    try {
+      const listContainer = document.getElementById('panelesList');
+      listContainer.innerHTML = '<div class="loading-spinner">‚è≥ Cargando paneles...</div>';
+
+      // Solicitar paneles al background.js (sin CORS)
+      const response = await new Promise((resolve, reject) => {
+        chrome.runtime.sendMessage(
+          { action: 'obtenerPaneles' },
+          (response) => {
+            if (chrome.runtime.lastError) {
+              reject(new Error(chrome.runtime.lastError.message));
+            } else {
+              resolve(response);
+            }
+          }
+        );
+      });
+
+      if (response && response.success && response.paneles) {
+        this.paneles = response.paneles;
+        this.renderizarPaneles();
+      } else {
+        throw new Error('Respuesta inv√°lida');
+      }
+    } catch (error) {
+      console.error('Error cargando paneles:', error);
+      document.getElementById('panelesList').innerHTML = 
+        `<div style="color: #ef4444; padding: 15px; text-align: center; font-size: 11px;">‚ùå Error: ${error.message}</div>`;
+      addLog(`‚ùå Error cargando paneles: ${error.message}`, 'error');
+    }
+  },
+
+  renderizarPaneles() {
+    const listContainer = document.getElementById('panelesList');
+    
+    if (this.paneles.length === 0) {
+      listContainer.innerHTML = '<div style="color: #94a3b8; text-align: center; padding: 20px; font-size: 11px;">üì≠ No hay paneles</div>';
+      return;
+    }
+
+    let html = '';
+    this.paneles.forEach(panel => {
+      html += `
+        <div class="panel-item" data-id="${panel.id}">
+          <div class="panel-info">
+            <div class="panel-id">ID: ${panel.id}</div>
+            <div class="panel-nombre">${panel.nombres && panel.nombres[0] ? panel.nombres[0] : panel.nombre || 'Sin nombre'}</div>
+          </div>
+          <div class="panel-actions">
+            <button class="edit-btn" onclick="nomenclaturaManager.editarPanel(${panel.id})">‚úèÔ∏è</button>
+            <button class="delete-btn" onclick="nomenclaturaManager.confirmarEliminar(${panel.id})">üóëÔ∏è</button>
+          </div>
+        </div>
+      `;
+    });
+
+    listContainer.innerHTML = html;
+  },
+
+  mostrarFormulario() {
+    this.panelesActual = null;
+    document.getElementById('nombrePanel').value = '';
+    document.getElementById('nomenclaturaForm').style.display = 'flex';
+    document.getElementById('abrirFormPanelBtn').style.display = 'none';
+    document.getElementById('nombrePanel').focus();
+  },
+
+  cancelarFormulario() {
+    document.getElementById('nomenclaturaForm').style.display = 'none';
+    document.getElementById('abrirFormPanelBtn').style.display = 'block';
+    document.getElementById('nombrePanel').value = '';
+    this.panelesActual = null;
+  },
+
+  editarPanel(id) {
+    const panel = this.paneles.find(p => p.id === id);
+    if (!panel) return;
+
+    this.panelesActual = panel;
+    document.getElementById('nombrePanel').value = panel.nombres && panel.nombres[0] ? panel.nombres[0] : panel.nombre || '';
+    document.getElementById('nomenclaturaForm').style.display = 'flex';
+    document.getElementById('abrirFormPanelBtn').style.display = 'none';
+    document.getElementById('nombrePanel').focus();
+  },
+
+  async guardarPanel() {
+    const nombre = document.getElementById('nombrePanel').value.trim();
+    
+    if (!nombre) {
+      alert('‚ö†Ô∏è Ingresa un nombre para el panel');
+      return;
+    }
+
+    try {
+      const url = `${this.SERVIDOR_URL}/paneles${this.SECRET}`;
+      
+      let response;
+      if (this.panelesActual) {
+        // Editar panel existente
+        response = await fetch(`${this.SERVIDOR_URL}/paneles/${this.panelesActual.id}${this.SECRET}`, {
+          method: 'PUT',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ nombre })
+        });
+      } else {
+        // Crear panel nuevo
+        response = await fetch(url, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ nombre })
+        });
+      }
+
+      const data = await response.json();
+
+      if (data.ok) {
+        const accion = this.panelesActual ? 'actualizado' : 'creado';
+        addLog(`‚úÖ Panel ${accion}: ${nombre}`, 'success');
+        this.cancelarFormulario();
+        await this.cargarPaneles();
+      } else {
+        throw new Error(data.error || 'Error desconocido');
+      }
+    } catch (error) {
+      console.error('Error guardando panel:', error);
+      alert(`‚ùå Error: ${error.message}`);
+      addLog(`‚ùå Error guardando panel: ${error.message}`, 'error');
+    }
+  },
+
+  confirmarEliminar(id) {
+    const panel = this.paneles.find(p => p.id === id);
+    if (!panel) return;
+
+    const nombre = panel.nombres && panel.nombres[0] ? panel.nombres[0] : panel.nombre || 'Sin nombre';
+    
+    if (confirm(`¬øEst√°s seguro de que deseas eliminar el panel "${nombre}"?`)) {
+      this.eliminarPanel(id);
+    }
+  },
+
+  async eliminarPanel(id) {
+    try {
+      const response = await fetch(`${this.SERVIDOR_URL}/paneles/${id}${this.SECRET}`, {
+        method: 'DELETE'
+      });
+
+      const data = await response.json();
+
+      if (data.ok) {
+        addLog(`üóëÔ∏è Panel eliminado correctamente`, 'warning');
+        await this.cargarPaneles();
+      } else {
+        throw new Error(data.error || 'Error desconocido');
+      }
+    } catch (error) {
+      console.error('Error eliminando panel:', error);
+      alert(`‚ùå Error: ${error.message}`);
+      addLog(`‚ùå Error eliminando panel: ${error.message}`, 'error');
+    }
+  }
+};
+
 // Escuchar mensajes desde el content script
 chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
   if (message.action === "popupEvent") {
@@ -305,7 +514,7 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
         addLog(`‚¨áÔ∏è Scrolleando chat...`, 'action');
         break;
       case 'tagearChat':
-        addLog(`Ìø∑Ô∏è Tageando chat en ${data.panel}`, 'action');
+        addLog(`ÔøΩÔøΩÔøΩÔ∏è Tageando chat en ${data.panel}`, 'action');
         break;
       case 'urlMapped':
         addLog(`‚úÖ URL mapeada: ${data.url} ‚Üí ${data.letra}`, 'success');
@@ -314,7 +523,7 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
         addLog(`‚è∏Ô∏è URL esperando: ${data.url}`, 'warning');
         break;
       case 'observerStarted':
-        addLog('Ìø¢ Observer iniciado en Clientify', 'success');
+        addLog('ÔøΩÔøΩÔøΩ Observer iniciado en Clientify', 'success');
         updateButtonStates(true);
         break;
       case 'observerStopped':
@@ -325,10 +534,10 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
         addLog(`‚ùå Error: ${data.message}`, 'error');
         break;
       case 'panelDetected':
-        addLog(`Ì≥ç Panel detectado: ${data.panel}`, 'info');
+        addLog(`ÔøΩÔøΩÔøΩ Panel detectado: ${data.panel}`, 'info');
         break;
       case 'nomemclaturaGenerated':
-        addLog(`Ì≥ù Nomenclatura: ${data.value}`, 'success');
+        addLog(`ÔøΩÔøΩÔøΩ Nomenclatura: ${data.value}`, 'success');
         break;
       default:
         addLog(`${event}`, type);
@@ -339,4 +548,5 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
 document.addEventListener('DOMContentLoaded', () => {
   loadStoredState();
   addLog('Panel cargado', 'info');
+  nomenclaturaManager.inicializar();
 });
