@@ -79,16 +79,25 @@ document.getElementById("observarChatsBtn").addEventListener("click", async () =
 });
 
 document.getElementById("detenerChatsBtn").addEventListener("click", async () => {
+  const tabs = await chrome.tabs.query({ url: "https://new.clientify.com/team-inbox/*" });
+  
+  if (tabs.length === 0) {
+    addLog('❌ No hay pestañas de Clientify abiertas', 'error');
+    return;
+  }
+  
+  // Enviar mensaje al background para detener
   chrome.runtime.sendMessage({ action: "detenerChats" }).catch(() => {
-    chrome.tabs.query({ active: true, currentWindow: true }, (tabs) => {
-      if (tabs[0]) {
-        chrome.tabs.sendMessage(tabs[0].id, { action: "detenerChats" });
-      }
-    });
+    console.error('Error enviando mensaje al background');
+  });
+  
+  // También enviar a todos los tabs activos
+  tabs.forEach(tab => {
+    chrome.tabs.sendMessage(tab.id, { action: "detenerChats" }).catch(() => {});
   });
   
   updateButtonStates(false);
-  addLog('⏹️ Observador detenido', 'warning');
+  addLog(`⏹️ Observador detenido en ${tabs.length} pestaña(s)`, 'warning');
 });
 
 // Sistema de Mapeos
