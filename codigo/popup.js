@@ -387,7 +387,7 @@ const nomenclaturaManager = {
         <div class="panel-item" data-id="${panel.id}">
           <div class="panel-info">
             <div class="panel-id">ID: ${panel.id}</div>
-            <div class="panel-nombre">${panel.nombres && panel.nombres[0] ? panel.nombres[0] : panel.nombre || 'Sin nombre'}</div>
+            <div class="panel-nombre">${panel.nombre || 'Sin nombre'}</div>
           </div>
           <div class="panel-actions">
             <button class="edit-btn" onclick="nomenclaturaManager.editarPanel(${panel.id})">✏️</button>
@@ -420,7 +420,7 @@ const nomenclaturaManager = {
     if (!panel) return;
 
     this.panelesActual = panel;
-    document.getElementById('nombrePanel').value = panel.nombres && panel.nombres[0] ? panel.nombres[0] : panel.nombre || '';
+    document.getElementById('nombrePanel').value = panel.nombre || '';
     document.getElementById('nomenclaturaForm').style.display = 'flex';
     document.getElementById('abrirFormPanelBtn').style.display = 'none';
     document.getElementById('nombrePanel').focus();

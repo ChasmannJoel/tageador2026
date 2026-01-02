@@ -32,7 +32,8 @@ async function cargarPanelesDelServidor() {
     if (data.ok && data.paneles && Array.isArray(data.paneles)) {
       panelesCache = data.paneles.map(p => ({
         id: p.id,
-        nombres: [p.nombre]
+        nombre: p.nombre,
+        numero: p.numero
       }));
       cacheTimestamp = ahora;
       console.log(`[Background] ✅ ${panelesCache.length} paneles cargados desde API`);
