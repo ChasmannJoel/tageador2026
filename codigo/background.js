@@ -48,6 +48,13 @@ async function cargarPanelesDelServidor() {
   }
 }
 
+// Función para invalidar cache (se llama cuando se modifica paneles)
+function invalidarCachePaneles() {
+  panelesCache = null;
+  cacheTimestamp = null;
+  console.log('[Background] 🔄 Cache de paneles invalidado');
+}
+
 // Escuchar mensajes desde popup y content script
 chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
   const tabId = sender.tab?.id;
@@ -61,6 +68,12 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
       sendResponse({ success: false, paneles: [] });
     });
     return true; // Mantener el canal abierto para respuesta asincrónica
+  }
+
+  // Invalidar cache cuando se modifiquen paneles
+  if (message.action === "invalidarCachePaneles") {
+    invalidarCachePaneles();
+    return;
   }
   
   // Si viene del content script iniciando observer

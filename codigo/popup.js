@@ -315,6 +315,10 @@ const nomenclaturaManager = {
       this.cerrarPanel();
     });
 
+    document.getElementById('refrescarPanelesBtn').addEventListener('click', () => {
+      this.cargarPaneles();
+    });
+
     document.getElementById('abrirFormPanelBtn').addEventListener('click', () => {
       this.mostrarFormulario();
     });
@@ -477,6 +481,10 @@ const nomenclaturaManager = {
       if (data.ok) {
         const accion = this.panelesActual ? 'actualizado' : 'creado';
         addLog(`✅ Panel ${accion}: ${nombre}`, 'success');
+        
+        // Invalidar cache en background para que recargue
+        chrome.runtime.sendMessage({ action: 'invalidarCachePaneles' });
+        
         this.cancelarFormulario();
         // Pequeño delay para asegurar que el servidor procesó
         await new Promise(resolve => setTimeout(resolve, 300));
@@ -512,6 +520,10 @@ const nomenclaturaManager = {
 
       if (data.ok) {
         addLog(`🗑️ Panel eliminado correctamente`, 'warning');
+        
+        // Invalidar cache en background
+        chrome.runtime.sendMessage({ action: 'invalidarCachePaneles' });
+        
         await this.cargarPaneles();
       } else {
         throw new Error(data.error || 'Error desconocido');
