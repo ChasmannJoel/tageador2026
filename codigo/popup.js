@@ -438,7 +438,7 @@ const nomenclaturaManager = {
       let response;
       if (this.panelesActual) {
         // Editar panel existente
-        response = await fetch(`${this.SERVIDOR_URL}/paneles/${this.panelesActual.id}`, {
+        response = await fetch(`${this.SERVIDOR_URL}/paneles/${this.panelesActual.id}/`, {
           method: 'PUT',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ 
@@ -447,14 +447,14 @@ const nomenclaturaManager = {
           })
         });
       } else {
-        // Crear panel nuevo - numero es obligatorio, usa array vacío por defecto
-        response = await fetch(`${this.SERVIDOR_URL}/paneles`, {
+        // Crear panel nuevo - numero es obligatorio, usa array con placeholder
+        response = await fetch(`${this.SERVIDOR_URL}/paneles/`, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ 
             secret: this.SECRET,
             nombre: nombre,
-            numero: [] // Array vacío según especificación
+            numero: ["0"] // Array con valor por defecto
           })
         });
       }
@@ -489,7 +489,7 @@ const nomenclaturaManager = {
 
   async eliminarPanel(id) {
     try {
-      const response = await fetch(`${this.SERVIDOR_URL}/paneles/${id}?secret=${encodeURIComponent(this.SECRET)}`, {
+      const response = await fetch(`${this.SERVIDOR_URL}/paneles/${id}/?secret=${encodeURIComponent(this.SECRET)}`, {
         method: 'DELETE'
       });
 
